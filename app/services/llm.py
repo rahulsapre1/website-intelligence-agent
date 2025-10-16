@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class LLMService:
     def __init__(self):
         genai.configure(api_key=settings.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     async def extract_business_insights(self, content: str, custom_questions: Optional[List[str]] = None) -> Dict[str, Any]:
         """
