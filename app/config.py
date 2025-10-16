@@ -5,9 +5,9 @@ from typing import Optional
 class Settings(BaseSettings):
     # API Keys
     gemini_api_key: str
-    jina_api_key: str
     supabase_url: str
     supabase_key: str
+    jina_api_key: str
     
     # Authentication
     api_secret_key: str
