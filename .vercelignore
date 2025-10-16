@@ -1,0 +1,25 @@
+# Backend files - not needed for frontend deployment
+app/
+tests/
+sql/
+requirements.txt
+Dockerfile
+render.yaml
+start.sh
+run_tests.py
+pytest.ini
+.env
+.env.example
+.gitignore
+README.md
+DEPLOYMENT_GUIDE.md
+PRODUCTION_SETUP.md
+GITHUB_SETUP.md
+CONTRIBUTING.md
+LICENSE
+website-intelligence-agent.plan.md
+docs/
+.github/
+scripts/
+example_usage.py
+test_api.py
