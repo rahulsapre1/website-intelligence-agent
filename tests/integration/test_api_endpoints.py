@@ -27,20 +27,22 @@ class TestAPIEndpoints:
         data = response.json()
         assert data["status"] == "healthy"
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.scraper.scraper_service.scrape_website')
     @patch('app.services.llm.llm_service.extract_business_insights')
     @patch('app.services.database.db_service.store_website_analysis')
-    def test_analyze_endpoint_success(self, mock_store, mock_extract, mock_scrape, 
-                                    sample_website_content, sample_insights, auth_headers):
+    def test_analyze_endpoint_success(self, mock_store, mock_extract, mock_scrape, mock_auth,
+                                    sample_website_content, sample_insights):
         """Test successful website analysis."""
         # Setup mocks
+        mock_auth.return_value = "test_secret_key"
         mock_scrape.return_value = sample_website_content
         mock_extract.return_value = sample_insights
         mock_store.return_value = "test-analysis-id"
         
         payload = {"url": "https://example.com"}
         
-        response = self.client.post("/api/analyze", json=payload, headers=auth_headers)
+        response = self.client.post("/api/analyze", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 200
         data = response.json()
@@ -48,13 +50,15 @@ class TestAPIEndpoints:
         assert data["insights"]["industry"] == "Technology"
         assert data["insights"]["company_size"] == "Medium (100-200 employees)"
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.scraper.scraper_service.scrape_website')
     @patch('app.services.llm.llm_service.extract_business_insights')
     @patch('app.services.database.db_service.store_website_analysis')
-    def test_analyze_endpoint_custom_questions(self, mock_store, mock_extract, mock_scrape,
-                                             sample_website_content, auth_headers):
+    def test_analyze_endpoint_custom_questions(self, mock_store, mock_extract, mock_scrape, mock_auth,
+                                             sample_website_content):
         """Test analysis with custom questions."""
         # Setup mocks
+        mock_auth.return_value = "test_secret_key"
         mock_scrape.return_value = sample_website_content
         mock_extract.return_value = {"custom_answers": "The main product is cloud computing."}
         mock_store.return_value = "test-analysis-id"
@@ -64,7 +68,7 @@ class TestAPIEndpoints:
             "questions": ["What is the main product?", "Who is the target audience?"]
         }
         
-        response = self.client.post("/api/analyze", json=payload, headers=auth_headers)
+        response = self.client.post("/api/analyze", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 200
         data = response.json()
@@ -79,35 +83,41 @@ class TestAPIEndpoints:
         
         assert response.status_code == 401
 
-    def test_analyze_endpoint_invalid_url(self, auth_headers):
+    @patch('app.utils.auth.verify_token')
+    def test_analyze_endpoint_invalid_url(self, mock_auth):
         """Test analysis endpoint with invalid URL."""
+        mock_auth.return_value = "test_secret_key"
         payload = {"url": "not-a-valid-url"}
         
-        response = self.client.post("/api/analyze", json=payload, headers=auth_headers)
+        response = self.client.post("/api/analyze", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 422  # Validation error
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.scraper.scraper_service.scrape_website')
-    def test_analyze_endpoint_scraping_error(self, mock_scrape, auth_headers):
+    def test_analyze_endpoint_scraping_error(self, mock_scrape, mock_auth):
         """Test analysis endpoint with scraping error."""
+        mock_auth.return_value = "test_secret_key"
         mock_scrape.side_effect = Exception("Scraping failed")
         
         payload = {"url": "https://example.com"}
         
-        response = self.client.post("/api/analyze", json=payload, headers=auth_headers)
+        response = self.client.post("/api/analyze", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 500
         data = response.json()
         assert "Analysis failed" in data["detail"]
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.database.db_service.get_website_analysis')
     @patch('app.services.llm.llm_service.answer_conversational_query')
     @patch('app.services.database.db_service.store_conversation')
     @patch('app.services.database.db_service.get_conversation_history')
     def test_chat_endpoint_success(self, mock_history, mock_store_conv, mock_answer, 
-                                 mock_get_analysis, sample_website_content, auth_headers):
+                                 mock_get_analysis, mock_auth, sample_website_content):
         """Test successful chat endpoint."""
         # Setup mocks
+        mock_auth.return_value = "test_secret_key"
         mock_get_analysis.return_value = {"raw_content": sample_website_content}
         mock_history.return_value = []
         mock_answer.return_value = "The main product is cloud computing solutions."
@@ -118,15 +128,17 @@ class TestAPIEndpoints:
             "query": "What is the main product?"
         }
         
-        response = self.client.post("/api/chat", json=payload, headers=auth_headers)
+        response = self.client.post("/api/chat", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 200
         data = response.json()
         assert "cloud computing solutions" in data["response"]
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.database.db_service.get_website_analysis')
-    def test_chat_endpoint_website_not_found(self, mock_get_analysis, auth_headers):
+    def test_chat_endpoint_website_not_found(self, mock_get_analysis, mock_auth):
         """Test chat endpoint when website not analyzed."""
+        mock_auth.return_value = "test_secret_key"
         mock_get_analysis.return_value = None
         
         payload = {
@@ -134,7 +146,7 @@ class TestAPIEndpoints:
             "query": "What is the main product?"
         }
         
-        response = self.client.post("/api/chat", json=payload, headers=auth_headers)
+        response = self.client.post("/api/chat", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 404
         data = response.json()
@@ -151,11 +163,13 @@ class TestAPIEndpoints:
         
         assert response.status_code == 401
 
+    @patch('app.utils.auth.verify_token')
     @patch('app.services.database.db_service.get_website_analysis')
     @patch('app.services.llm.llm_service.answer_conversational_query')
-    def test_chat_endpoint_llm_error(self, mock_answer, mock_get_analysis, 
-                                   sample_website_content, auth_headers):
+    def test_chat_endpoint_llm_error(self, mock_answer, mock_get_analysis, mock_auth,
+                                   sample_website_content):
         """Test chat endpoint with LLM error."""
+        mock_auth.return_value = "test_secret_key"
         mock_get_analysis.return_value = {"raw_content": sample_website_content}
         mock_answer.side_effect = Exception("LLM error")
         
@@ -164,14 +178,16 @@ class TestAPIEndpoints:
             "query": "What is the main product?"
         }
         
-        response = self.client.post("/api/chat", json=payload, headers=auth_headers)
+        response = self.client.post("/api/chat", json=payload, headers=self.auth_headers)
         
         assert response.status_code == 500
         data = response.json()
         assert "Chat failed" in data["detail"]
 
-    def test_rate_limiting(self, auth_headers):
+    @patch('app.utils.auth.verify_token')
+    def test_rate_limiting(self, mock_auth):
         """Test rate limiting functionality."""
+        mock_auth.return_value = "test_secret_key"
         payload = {"url": "https://example.com"}
         
         # Make multiple requests to test rate limiting
@@ -180,7 +196,7 @@ class TestAPIEndpoints:
             with patch('app.services.scraper.scraper_service.scrape_website'), \
                  patch('app.services.llm.llm_service.extract_business_insights'), \
                  patch('app.services.database.db_service.store_website_analysis'):
-                response = self.client.post("/api/analyze", json=payload, headers=auth_headers)
+                response = self.client.post("/api/analyze", json=payload, headers=self.auth_headers)
                 responses.append(response.status_code)
         
         # Should have some 429 responses due to rate limiting

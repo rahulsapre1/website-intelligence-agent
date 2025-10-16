@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from app.main import app
 from app.config import Settings
@@ -30,6 +30,19 @@ def mock_settings():
         api_secret_key="test_secret_key",
         rate_limit_per_minute=10
     )
+
+
+@pytest.fixture(autouse=True)
+def mock_app_settings():
+    """Mock app settings for all tests."""
+    with patch('app.config.settings') as mock_settings:
+        mock_settings.api_secret_key = "test_secret_key"
+        mock_settings.gemini_api_key = "test_gemini_key"
+        mock_settings.supabase_url = "https://test.supabase.co"
+        mock_settings.supabase_key = "test_supabase_key"
+        mock_settings.jina_api_key = "test_jina_key"
+        mock_settings.rate_limit_per_minute = 10
+        yield mock_settings
 
 
 @pytest.fixture
