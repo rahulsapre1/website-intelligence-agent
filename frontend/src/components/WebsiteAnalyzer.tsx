@@ -4,13 +4,35 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ApiClient } from '@/lib/api';
 import { AnalyzeResponse, BusinessInsights } from '@/types';
 import { Loader2, Search, Copy, Check } from 'lucide-react';
 
 interface WebsiteAnalyzerProps {
   apiKey: string;
   onAnalysisComplete?: (url: string) => void;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+async function analyzeWebsite(apiKey: string, url: string, questions?: string[]): Promise<AnalyzeResponse> {
+  const response = await fetch(`${API_URL}/api/analyze`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ url, questions }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({
+      error: 'Network error',
+      detail: `HTTP ${response.status}: ${response.statusText}`,
+    }));
+    throw new Error(error.detail || error.error);
+  }
+
+  return response.json();
 }
 
 export function WebsiteAnalyzer({ apiKey, onAnalysisComplete }: WebsiteAnalyzerProps) {
@@ -20,8 +42,6 @@ export function WebsiteAnalyzer({ apiKey, onAnalysisComplete }: WebsiteAnalyzerP
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const apiClient = new ApiClient(apiKey);
-
   const handleAnalyze = async () => {
     if (!url.trim()) return;
 
@@ -30,7 +50,7 @@ export function WebsiteAnalyzer({ apiKey, onAnalysisComplete }: WebsiteAnalyzerP
     setResult(null);
 
     try {
-      const response = await apiClient.analyzeWebsite(url.trim());
+      const response = await analyzeWebsite(apiKey, url.trim());
       setResult(response);
       if (onAnalysisComplete) {
         onAnalysisComplete(response.url);

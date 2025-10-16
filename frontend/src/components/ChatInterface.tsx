@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ApiClient } from '@/lib/api';
 import { ChatResponse, ConversationMessage } from '@/types';
 import { Send, Loader2, Bot, User } from 'lucide-react';
 
@@ -13,14 +12,44 @@ interface ChatInterfaceProps {
   analyzedUrl: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+async function chatAboutWebsite(
+  apiKey: string,
+  url: string,
+  query: string,
+  conversationHistory?: Array<{ query: string; response: string }>
+): Promise<ChatResponse> {
+  const response = await fetch(`${API_URL}/api/chat`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      url,
+      query,
+      conversation_history: conversationHistory,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({
+      error: 'Network error',
+      detail: `HTTP ${response.status}: ${response.statusText}`,
+    }));
+    throw new Error(error.detail || error.error);
+  }
+
+  return response.json();
+}
+
 export function ChatInterface({ apiKey, analyzedUrl }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const apiClient = new ApiClient(apiKey);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,7 +80,8 @@ export function ChatInterface({ apiKey, analyzedUrl }: ChatInterfaceProps) {
         response: msg.response,
       }));
 
-      const response: ChatResponse = await apiClient.chatAboutWebsite(
+      const response: ChatResponse = await chatAboutWebsite(
+        apiKey,
         analyzedUrl,
         userMessage.query,
         conversationHistory

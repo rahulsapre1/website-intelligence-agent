@@ -6,8 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WebsiteAnalyzer } from '@/components/WebsiteAnalyzer';
 import { ChatInterface } from '@/components/ChatInterface';
-import { ApiClient } from '@/lib/api';
 import { Brain, Globe, MessageSquare, Key, CheckCircle, AlertCircle } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+async function healthCheck(apiKey: string): Promise<{ status: string; timestamp: string; version: string }> {
+  const response = await fetch(`${API_URL}/health`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Health check failed: ${response.status}`);
+  }
+
+  return response.json();
+}
 
 export default function HomePage() {
   const [apiKey, setApiKey] = useState('');
@@ -31,8 +48,7 @@ export default function HomePage() {
 
     if (key.trim()) {
       try {
-        const apiClient = new ApiClient(key);
-        await apiClient.healthCheck();
+        await healthCheck(key);
         setIsValidKey(true);
       } catch {
         setIsValidKey(false);
