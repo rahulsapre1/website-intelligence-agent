@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ApiClient } from '@/lib/api';
-import { AnalyzeResponse, BusinessInsights } from '@/types';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { ApiClient } from '../lib/api';
+import { AnalyzeResponse, BusinessInsights } from '../types';
 import { Loader2, Search, Copy, Check } from 'lucide-react';
 
 interface WebsiteAnalyzerProps {
