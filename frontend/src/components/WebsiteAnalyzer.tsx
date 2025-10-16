@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ApiClient } from '../lib/api';
-import { AnalyzeResponse, BusinessInsights } from '../types';
+import { ApiClient } from '@/lib/api';
+import { AnalyzeResponse, BusinessInsights } from '@/types';
 import { Loader2, Search, Copy, Check } from 'lucide-react';
 
 interface WebsiteAnalyzerProps {

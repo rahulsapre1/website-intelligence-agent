@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ApiClient } from '../lib/api';
-import { ChatResponse, ConversationMessage } from '../types';
+import { ApiClient } from '@/lib/api';
+import { ChatResponse, ConversationMessage } from '@/types';
 import { Send, Loader2, Bot, User } from 'lucide-react';
 
 interface ChatInterfaceProps {
