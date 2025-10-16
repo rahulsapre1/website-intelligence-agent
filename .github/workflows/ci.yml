@@ -42,7 +42,8 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        API_SECRET_KEY: test_secret_key
+        API_SECRET_KEY: ${{ secrets.API_SECRET_KEY || 'rahul_sapre' }}
+        RATE_LIMIT_PER_MINUTE: 20
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

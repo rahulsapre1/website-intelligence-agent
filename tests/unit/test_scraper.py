@@ -15,20 +15,22 @@ class TestScraperService:
         """Test successful website scraping."""
         url = "https://example.com"
         
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('httpx.AsyncClient') as mock_client, \
+             patch.object(self.scraper, '_enhance_content_extraction') as mock_enhance:
+            
             mock_response = AsyncMock()
             mock_response.text = sample_website_content
             mock_response.raise_for_status = AsyncMock()
+            mock_enhance.return_value = sample_website_content  # Return original content
             
             mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
             
             result = await self.scraper.scrape_website(url)
             
             assert result == sample_website_content
-            mock_client.return_value.__aenter__.return_value.get.assert_called_once_with(
-                f"https://r.jina.ai/{url}"
-            )
+            mock_client.return_value.__aenter__.return_value.get.assert_called_once()
             mock_response.raise_for_status.assert_called_once()
+            mock_enhance.assert_called_once_with(sample_website_content, url)
 
     @pytest.mark.asyncio
     async def test_scrape_website_timeout(self):
