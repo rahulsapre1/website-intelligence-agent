@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { WebsiteAnalyzer } from '../components/WebsiteAnalyzer';
-import { ChatInterface } from '../components/ChatInterface';
-import { ApiClient } from '../lib/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { WebsiteAnalyzer } from '@/components/WebsiteAnalyzer';
+import { ChatInterface } from '@/components/ChatInterface';
+import { ApiClient } from '@/lib/api';
 import { Brain, Globe, MessageSquare, Key, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function HomePage() {
